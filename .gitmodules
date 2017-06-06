@@ -1,0 +1,3 @@
+[submodule "source/lib/firmware"]
+	path = source/lib/firmware
+	url = https://github.com/spark/firmware.git

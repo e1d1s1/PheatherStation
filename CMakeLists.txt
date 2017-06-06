@@ -97,13 +97,23 @@ if (DOTESTS)
 endif()
 
 #
-# Include directories for dependencies.
+# Include directories for dependencies and photon firmware submodule
 #
 
 include_directories (
-                      ${CMAKE_CURRENT_BINARY_DIR}/source/lib
-                      ${CMAKE_CURRENT_SOURCE_DIR}/source/include
-                      ${TOOLCHAIN_INCLUDE_DIRECTORIES}
+                        ${CMAKE_CURRENT_BINARY_DIR}/source/lib
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/include
+                        ${TOOLCHAIN_INCLUDE_DIRECTORIES}
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/system/inc
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/inc
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/shared
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/src/stm32f2xx
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/services/inc
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/wiring/inc
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/platform/shared/inc
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/communication/src
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/user/inc
+                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/src/stm32
                     )
 
 #
