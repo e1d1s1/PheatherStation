@@ -27,20 +27,15 @@ message("Build configuration type is ${CMAKE_BUILD_TYPE}")
 #
 # cross compiler
 #
-if (NOT CMAKE_CROSSCOMPILING)
-  # Detect and use optimised compiler flags for the host architecture,
-  # this is specific to x86 family CPUs.
-  include(cmake/OptimizeForArchitecture.cmake)
-  OptimizeForArchitecture()
-  message(STATUS "Adding architecture flags: ${Vc_ARCHITECTURE_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Vc_ARCHITECTURE_FLAGS}")
-else ()
+include(CMakeForceCompiler)
 SET(CMAKE_SYSTEM_NAME Generic)
-set(CMAKE_C_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gcc")
-set(CMAKE_CXX_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-g++")
+CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
+CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
+set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
-message(STATUS "Toolchain prefix: ${CMAKE_INSTALL_PREFIX}")
-endif ()
 
 #
 # Define the base solution name.
