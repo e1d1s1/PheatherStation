@@ -25,6 +25,24 @@ ENDIF()
 message("Build configuration type is ${CMAKE_BUILD_TYPE}")
 
 #
+# cross compiler
+#
+if (NOT CMAKE_CROSSCOMPILING)
+  # Detect and use optimised compiler flags for the host architecture,
+  # this is specific to x86 family CPUs.
+  include(cmake/OptimizeForArchitecture.cmake)
+  OptimizeForArchitecture()
+  message(STATUS "Adding architecture flags: ${Vc_ARCHITECTURE_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${Vc_ARCHITECTURE_FLAGS}")
+else ()
+SET(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_C_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-gcc")
+set(CMAKE_CXX_COMPILER "/opt/gcc-arm-none-eabi-5_4-2016q3/bin/arm-none-eabi-g++")
+message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
+message(STATUS "Toolchain prefix: ${CMAKE_INSTALL_PREFIX}")
+endif ()
+
+#
 # Define the base solution name.
 #
 
@@ -74,7 +92,7 @@ set(CMAKE_SKIP_RPATH false)
 set(CMAKE_INSTALL_RPATH "\$ORIGIN/.:\$ORIGIN/..")
 
 #
-# we want to be using C++14 support.
+# we want to be using C++11 support.
 #
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
