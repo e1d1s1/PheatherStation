@@ -5,43 +5,13 @@
 #
 # Author:
 #     Eric D. Schmidt <e1d1s1@hotmail.com> 06-05-2017
-#
+#     Used https://github.com/ashtuchkin/vive-diy-position-sensor as a guide
 
 #
 # Make sure there is a reasonable version of CMAKE installed.
 #
 
-cmake_minimum_required(VERSION 2.6)
-
-#
-# Define the build type. We default to RelWithDebInfo
-#
-IF(DEFINED CMAKE_BUILD_TYPE)
-   SET(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")   
-ELSE()
-   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel.")
-ENDIF()
-
-message("Build configuration type is ${CMAKE_BUILD_TYPE}")
-
-#
-# cross compiler
-#
-include(CMakeForceCompiler)
-SET(CMAKE_SYSTEM_NAME Generic)
-CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GNU)
-CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GNU)
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-message(STATUS "Cross-compiling with the gcc-arm-embedded toolchain")
-
-#
-# Define the base solution name.
-#
-
-project("PheatherStaton")
+cmake_minimum_required(VERSION 3.2)
 
 #
 # Keep track of the base directory for the rest of the system.
@@ -49,22 +19,18 @@ project("PheatherStaton")
 
 set(BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-#
-# This is where code is released to. This directory forms the
-# final "installation", allowing you to copy one directory to
-# a remote machine to avoid publishing source code.
-#
-
-set(RELEASE_DIRECTORY ${BASE_DIRECTORY}/output)
-
+#cross compiler stuff
+#if (${PLATFORM} MATCHES "Particle")
+	set(PLATFORM "Particle")
+    set(CMAKE_TOOLCHAIN_FILE "platform-particle/stm32f2xx.toolchain.cmake")
+    add_subdirectory(platform-particle)
+#endif()
 
 #
-# Install to the target directory.
+# Define the base solution name.
 #
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RELEASE_DIRECTORY})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${RELEASE_DIRECTORY})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${RELEASE_DIRECTORY})
+project("PheatherStaton")
 
 if(CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo)
@@ -72,19 +38,6 @@ if(CMAKE_CONFIGURATION_TYPES)
      "Reset the configurations to what we need"
      FORCE)
 endif()
-
-
-#
-# Avoid needing to set LD_LIBRARY_PATH (or install to /usr/lib).
-# This tells our binaries to look into the same base directory for
-# their libraries.
-#
-
-set(CMAKE_BUILD_WITH_INSTALL_RPATH true)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH false)
-set(CMAKE_SKIP_BUILD_RPATH false)
-set(CMAKE_SKIP_RPATH false)
-set(CMAKE_INSTALL_RPATH "\$ORIGIN/.:\$ORIGIN/..")
 
 #
 # we want to be using C++11 support.
@@ -99,35 +52,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${BASE_DIRECTORY}/cmake")
 
-
 # unit test support
 option(DOTESTS "Run unit tests" OFF)
 if (DOTESTS)
 	#unit test library
 	find_package(Check REQUIRED)
     enable_testing()
-    add_subdirectory (tests)
 endif()
-
-#
-# Include directories for dependencies and photon firmware submodule
-#
-
-include_directories (
-                        ${CMAKE_CURRENT_BINARY_DIR}/source/lib
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/include
-                        ${TOOLCHAIN_INCLUDE_DIRECTORIES}
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/system/inc
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/inc
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/shared
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/src/stm32f2xx
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/services/inc
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/wiring/inc
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/platform/shared/inc
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/communication/src
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/user/inc
-                        ${CMAKE_CURRENT_SOURCE_DIR}/source/lib/firmware/hal/src/stm32
-                    )
 
 #
 # Coverage instrumentation
@@ -188,6 +119,6 @@ add_custom_target (changeset
                     VERBATIM
                   )
 
-add_dependencies(pheatherstation changeset)
+add_dependencies(pheatherstation-core changeset)
 
 set_property(TARGET changeset PROPERTY FOLDER "CMakePredefinedTargets")

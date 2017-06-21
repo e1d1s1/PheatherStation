@@ -13,21 +13,4 @@
     Released under the MIT License(http://opensource.org/licenses/MIT)
 */
 
-#include "application.h"
-
-int led = D0; // LED is connected to D0
-
-// This routine runs only once upon reset
-void setup()
-{
-	pinMode(led, OUTPUT); // Initialize D0 pin as output
-}
-
-// This routine loops forever
-void loop()
-{
-	digitalWrite(led, HIGH);  // Turn ON the LED
-	delay(1000);              // Wait for 1000mS = 1 second
-	digitalWrite(led, LOW);   // Turn OFF the LED
-	delay(1000);              // Wait for 1 second
-}
+#include "pheatherstation.h"

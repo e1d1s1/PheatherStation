@@ -1,27 +1,38 @@
 #
 # PheatherStation
 #
-# This is the makefile for all of the subdirectories. It walks through
-# and builds each module, in turn.
+# This is the makefile for pheatherstation firmware.
 #
 # Author:
 #     Eric D. Schmidt <e1d1s1@hotmail.com> 06-05-2017
 #
 
-#
-# All paths can include from 'lib' and this directory downward.
-#
+set(SOURCE_FILES
+	pheatherstation.cpp
+)
 
-include_directories (
-                      lib
-                      .
-                    )
+set(HEADER_FILES
+	pheatherstation.h
+)
 
-#
-# Add the major categories in.
-#
+include_directories(
+        ${BASE_DIRECTORY}/libs/firmware/system/inc
+        ${BASE_DIRECTORY}/libs/firmware/hal/inc
+        ${BASE_DIRECTORY}/libs/firmware/hal/shared
+        ${BASE_DIRECTORY}/libs/firmware/hal/src/stm32f2xx
+        ${BASE_DIRECTORY}/libs/firmware/services/inc
+        ${BASE_DIRECTORY}/libs/firmware/wiring/inc
+        ${BASE_DIRECTORY}/libs/firmware/user/inc
+		${BASE_DIRECTORY}/libs/firmware/communication/src
+		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries
+		${BASE_DIRECTORY}/libs/firmware/platform/MCU/STM32F2xx/CMSIS/Include
+		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries/inc
+		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/ARM_CM3
+		${BASE_DIRECTORY}/libs/firmware/platform/MCU/gcc/inc
+		${BASE_DIRECTORY}/libs/firmware/hal/src/stm32
+        )
 
-add_subdirectory(lib)
-add_subdirectory(bin)
-add_subdirectory(include)
-#add_subdirectory(utilities)
+add_library(pheatherstation-core STATIC EXCLUDE_FROM_ALL ${HEADER_FILES} ${SOURCE_FILES})
+target_include_directories(pheatherstation-core PRIVATE ${CMAKE_SOURCE_DIR}/source)
+target_link_libraries(pheatherstation-core)
+target_include_directories(pheatherstation-core PUBLIC ${CMAKE_SOURCE_DIR}/include)
