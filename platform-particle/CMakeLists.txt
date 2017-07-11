@@ -45,10 +45,10 @@ ExternalProject_Add(
 
 # Build full firmware  particle-firmware-deps 
 add_custom_target(pheatherstation-firmware ALL
-    DEPENDS pheatherstation-core
+    DEPENDS pheatherstation
     WORKING_DIRECTORY "${FIRMWARE_DIR}/main"
-	#COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation-core> $<TARGET_FILE_DIR:cmsis>' ADDITIONAL_LIBS='pheatherstation-core arm_cortexM3l_math'
-    COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation-core>' ADDITIONAL_LIBS='pheatherstation-core'
+	#COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation> $<TARGET_FILE_DIR:cmsis>' ADDITIONAL_LIBS='pheatherstation-core arm_cortexM3l_math'
+    COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation>' ADDITIONAL_LIBS='pheatherstation'
 )
 
 add_custom_target(pheatherstation-firmware-clean

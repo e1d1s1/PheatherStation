@@ -104,12 +104,6 @@ if (COVERAGE_TESTING)
 endif ()
 
 #
-# Alright, move on to building the main source folder now.
-#
-
-add_subdirectory(source)
-
-#
 # Create a target to recalculate the source control hash.
 #
 
@@ -119,6 +113,6 @@ add_custom_target (changeset
                     VERBATIM
                   )
 
-add_dependencies(pheatherstation-core changeset)
+add_dependencies(pheatherstation changeset)
 
 set_property(TARGET changeset PROPERTY FOLDER "CMakePredefinedTargets")

@@ -12,8 +12,9 @@ int led2 = D7; // Instead of writing D7 over and over again, we'll write led2
 SYSTEM_MODE(MANUAL);
 
 void setup() {
-    WiFi.connect();
-    waitUntil(WiFi.ready);
+    //WiFi.connect();
+    //waitUntil(WiFi.ready);
+  	pinMode(led2, OUTPUT);
 }
 
 void loop() {
