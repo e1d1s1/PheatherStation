@@ -31,6 +31,9 @@ mkdir build
 cd build
 cmake ..
 
+You must build pre-reqs first:
+make particle-firmware-deps
+
 Flashing via cmake and particle-cli over on-board USB port:
 make pheatherstation-firmware-upload
 
@@ -45,6 +48,13 @@ telnet localhost 4444
 > reset halt
 > program /path/to/photon.bin verify 0x80A0000
 > reset
+
+# serial/usb debug message output
+# using a USB-RS232 converter connected to a RS232-TTL converter
+sudo chmod 666 /dev/ttyUSB0
+screen /dev/ttyUSB0 115000
+# using build in USB port, virtual COM
+screen /dev/ttyACM1 9600
 
 
 

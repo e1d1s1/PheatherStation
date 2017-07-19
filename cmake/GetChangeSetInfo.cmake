@@ -114,7 +114,7 @@ endif()
 
 if(NOT PRESENT_CHANGESET_HEADER STREQUAL DESIRED_CHANGESET_HEADER)
 
-    message("-- New changeset was pushed, updating changeset information in the mcom binary.")
+    message("-- New changeset was pushed, updating changeset information in the pheatherstation binary.")
     
     file(WRITE ${OUTPUT_HEADER} "${DESIRED_CHANGESET_HEADER}")
     file(APPEND ${OUTPUT_HEADER} "\n${DESIRED_VERSION_HEADER}")

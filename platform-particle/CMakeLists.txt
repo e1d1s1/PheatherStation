@@ -9,6 +9,7 @@ set(MAKE_FLAGS
         APPDIR=${APPDIR} TARGET_DIR=${TARGET_DIR} TARGET_FILE=${TARGET_FILE}
 )
 add_definitions(-DPLATFORM_THREADING=0)
+
 add_definitions(-DPLATFORM_NAME=${PARTICLE_PLATFORM})
 if (${PARTICLE_PLATFORM} STREQUAL "photon")
     add_definitions(-DPLATFORM_ID=6 -DPRODUCT_ID=6)
@@ -45,10 +46,10 @@ ExternalProject_Add(
 
 # Build full firmware  particle-firmware-deps 
 add_custom_target(pheatherstation-firmware ALL
-    DEPENDS pheatherstation
+    DEPENDS pheatherstation-core
     WORKING_DIRECTORY "${FIRMWARE_DIR}/main"
-	#COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation> $<TARGET_FILE_DIR:cmsis>' ADDITIONAL_LIBS='pheatherstation-core arm_cortexM3l_math'
-    COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation>' ADDITIONAL_LIBS='pheatherstation'
+	#COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation-core> $<TARGET_FILE_DIR:cmsis>' ADDITIONAL_LIBS='pheatherstation-core arm_cortexM3l_math'
+    COMMAND make all ${MAKE_FLAGS} ADDITIONAL_LIB_DIRS='$<TARGET_FILE_DIR:pheatherstation-core>' ADDITIONAL_LIBS='pheatherstation-core'
 )
 
 add_custom_target(pheatherstation-firmware-clean

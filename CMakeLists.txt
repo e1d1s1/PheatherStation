@@ -39,8 +39,11 @@ if(CMAKE_CONFIGURATION_TYPES)
      FORCE)
 endif()
 
+# weather calculations
+add_subdirectory(src)
+
 #
-# we want to be using C++11 support.
+# we want to be using C++14 support.
 #
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
@@ -113,6 +116,6 @@ add_custom_target (changeset
                     VERBATIM
                   )
 
-add_dependencies(pheatherstation changeset)
+add_dependencies(pheatherstation-core changeset)
 
 set_property(TARGET changeset PROPERTY FOLDER "CMakePredefinedTargets")
