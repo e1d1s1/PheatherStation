@@ -1,3 +1,4 @@
+set(CMAKE_CXX_STANDARD 14)
 
 set(PARTICLE_PLATFORM "photon" CACHE STRING "Particle platform to compile for")
 set(FIRMWARE_DIR "${CMAKE_SOURCE_DIR}/libs/firmware")
@@ -33,6 +34,23 @@ ExternalProject_Add(
     BUILD_COMMAND make build_dependencies -j1 ${MAKE_FLAGS}
     INSTALL_COMMAND ""
 )
+
+include_directories(
+        ${BASE_DIRECTORY}/libs/firmware/system/inc
+        ${BASE_DIRECTORY}/libs/firmware/hal/inc
+        ${BASE_DIRECTORY}/libs/firmware/hal/shared
+        ${BASE_DIRECTORY}/libs/firmware/hal/src/stm32f2xx
+        ${BASE_DIRECTORY}/libs/firmware/services/inc
+        ${BASE_DIRECTORY}/libs/firmware/wiring/inc
+        ${BASE_DIRECTORY}/libs/firmware/user/inc
+		${BASE_DIRECTORY}/libs/firmware/communication/src
+		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries
+		${BASE_DIRECTORY}/libs/firmware/platform/MCU/STM32F2xx/CMSIS/Include
+		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries/inc
+		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/ARM_CM3
+		${BASE_DIRECTORY}/libs/firmware/platform/MCU/gcc/inc
+		${BASE_DIRECTORY}/libs/firmware/hal/src/stm32
+        )
 
 # CMSIS library
 #set(CMSIS_ROOT "${CMAKE_SOURCE_DIR}/libs/CMSIS/CMSIS" CACHE PATH "Path to the CMSIS root directory")

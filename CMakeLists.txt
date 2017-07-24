@@ -32,6 +32,12 @@ set(BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 project("PheatherStaton")
 
+#
+# we want to be using C++14 support.
+#
+
+set(CMAKE_CXX_STANDARD 14)
+
 if(CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo)
     set(CMAKE_CONFIGURATION_TYPES "${CMAKE_CONFIGURATION_TYPES}" CACHE STRING
@@ -41,12 +47,6 @@ endif()
 
 # weather calculations
 add_subdirectory(src)
-
-#
-# we want to be using C++14 support.
-#
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 
 #
 # Make sure our dependencies are all present (as much as we

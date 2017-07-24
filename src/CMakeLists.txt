@@ -11,7 +11,7 @@
 # we want to be using C++14 support.
 #
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_STANDARD 14)
 
 set(SOURCE_FILES
 	pheatherstation.cpp

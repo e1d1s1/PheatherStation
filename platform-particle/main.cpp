@@ -2,20 +2,24 @@
 //#include "settings.h"
 #include "application.h"
 
-
 #include "pheatherstation.h"
+
+#include <iostream>
+#include <string>
+#include <stdio.h>
 
 
 class println;
-int led1 = D0; // Instead of writing D0 over and over again, we'll write led1
-// You'll need to wire an LED to this one to see it blink.
 
-int led2 = D7; // Instead of writing D7 over and over again, we'll write led2
-// This one is the little blue LED on your board. On the Photon it is next to D7, and on the Core it is next to the USB jack.
+const int LED_FLASH = D7; // Instead of writing D7 over and over again, we'll write led2. This one is the little blue LED on your board. On the Photon it is next to D7, and on the Core it is next to the USB jack.
+
+int THERMISTOR = A3; // 10k thermistor
+double VCC = 3.33; // VCC voltage source
+int ADC_MAX = 4096;
 
 SYSTEM_MODE(MANUAL);
 
-PheatherStation gStation;
+PheatherStation gStation(VCC);
 
 void debug_message(const string& msg)
 {
@@ -26,7 +30,9 @@ void debug_message(const string& msg)
 void setup() {
     //WiFi.connect();
     //waitUntil(WiFi.ready);
-  	pinMode(led2, OUTPUT);
+  	pinMode(LED_FLASH, OUTPUT);
+	
+	pinMode(THERMISTOR, INPUT);
 	
 	Serial.begin(9600);
 	Serial1.begin(9600);
@@ -34,10 +40,23 @@ void setup() {
 }
 
 void loop() {
-    digitalWrite(led2, HIGH);  // Turn ON the LED
+    digitalWrite(LED_FLASH, HIGH);  // Turn ON the LED
 	delay(1000);              // Wait for 1000mS = 1 second
-	digitalWrite(led2, LOW);   // Turn OFF the LED
+	digitalWrite(LED_FLASH, LOW);   // Turn OFF the LED
 	delay(1000);              // Wait for 1 second
 	
-	//debug_message("test message");
+	int digValue = analogRead(THERMISTOR);
+	gStation.set_thermistor_voltage( digValue/(double)ADC_MAX * VCC ) ;
+	
+	char buffer[8];
+	sprintf(buffer, "%f", gStation.get_temperature());
+	
+	string msg = "ambient temperature: ";
+	msg += buffer;
+	
+	sprintf(buffer, "%d", digValue);
+	msg += " ADC:";
+	msg += buffer;
+	msg += "\n";
+	debug_message(msg);
 }
