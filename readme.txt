@@ -58,6 +58,19 @@ screen /dev/ttyACM1 9600
 
 
 
+I/O Ports
+D0 - I2C SDA (BME280 Atmospheric Sensor)
+D1 - I2C SCL (BME280 Atmospheric Sensor)
+D2 - Rain Gauge
+D3 - Anemometer
+D6-D7 SWD Programmer
+A0 - Wind Vane
+A1 - Battery Voltage
+A2 - Additional temp sensor
+WAKE - Rain Gauge, or Windspeed over X KPH would be nice using a counter circuit
+
+
+
 
 
 

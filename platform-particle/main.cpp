@@ -14,12 +14,19 @@ class println;
 const int LED_FLASH = D7; // Instead of writing D7 over and over again, we'll write led2. This one is the little blue LED on your board. On the Photon it is next to D7, and on the Core it is next to the USB jack.
 
 int THERMISTOR = A3; // 10k thermistor
+int ANEMOMETER = D3;
+int WINDVANE = A0;
+int RAINGAUGE = WKP;
+
 double VCC = 3.33; // VCC voltage source
 int ADC_MAX = 4096;
 
 SYSTEM_MODE(MANUAL);
 
 PheatherStation gStation(VCC);
+
+void anemometer_interrupt();
+void raingauge_interrupt();
 
 void debug_message(const string& msg)
 {
@@ -33,6 +40,13 @@ void setup() {
   	pinMode(LED_FLASH, OUTPUT);
 	
 	pinMode(THERMISTOR, INPUT);
+	pinMode(WINDVANE, INPUT);
+	
+	pinMode(ANEMOMETER, INPUT);
+	attachInterrupt(ANEMOMETER, anemometer_interrupt, RISING);
+	
+	pinMode(RAINGAUGE, INPUT);
+	attachInterrupt(RAINGAUGE, raingauge_interrupt, RISING);
 	
 	Serial.begin(9600);
 	Serial1.begin(9600);
@@ -59,4 +73,17 @@ void loop() {
 	msg += buffer;
 	msg += "\n";
 	debug_message(msg);
+	
+	digValue = analogRead(WINDVANE);
+	
+}
+
+void anemometer_interrupt()
+{
+	debug_message("anemometer revolution\n");
+}
+
+void raingauge_interrupt()
+{
+	debug_message("rain gauage trigger\n");
 }
