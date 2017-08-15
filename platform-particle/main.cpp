@@ -3,6 +3,9 @@
 #include "application.h"
 
 #include "pheatherstation.h"
+#include "cactus_io_BME280_I2C.h"
+
+#include <Wire.h>
 
 #include <iostream>
 #include <string>
@@ -24,6 +27,9 @@ int ADC_MAX = 4096;
 SYSTEM_MODE(MANUAL);
 
 PheatherStation gStation(VCC);
+BME280_I2C gBMESensor;
+bool bFoundSensor;
+uint8_t chipID;
 
 void anemometer_interrupt();
 void raingauge_interrupt();
@@ -35,6 +41,8 @@ void debug_message(const string& msg)
 }
 
 void setup() {
+	chipID = 0;
+	
     //WiFi.connect();
     //waitUntil(WiFi.ready);
   	pinMode(LED_FLASH, OUTPUT);
@@ -51,6 +59,8 @@ void setup() {
 	Serial.begin(9600);
 	Serial1.begin(9600);
 	gStation.set_logger([=](const string& msg) { debug_message(msg); });
+	
+	bFoundSensor = gBMESensor.begin(chipID);
 }
 
 void loop() {
@@ -59,20 +69,50 @@ void loop() {
 	digitalWrite(LED_FLASH, LOW);   // Turn OFF the LED
 	delay(1000);              // Wait for 1 second
 	
+	if (bFoundSensor)
+	{
+		debug_message("found BME280");
+	}
+	else
+	{
+		debug_message("Could not find BME280");
+		char buffer[8];
+		sprintf(buffer, "%u", chipID);
+		debug_message(buffer);
+	}
+	
 	int digValue = analogRead(THERMISTOR);
 	gStation.set_thermistor_voltage( digValue/(double)ADC_MAX * VCC ) ;
 	
-	char buffer[8];
-	sprintf(buffer, "%f", gStation.get_temperature());
+	char buffer[16];
+	//sprintf(buffer, "%f", gStation.get_temperature());
 	
-	string msg = "ambient temperature: ";
-	msg += buffer;
+	//string msg = "ambient temperature: ";
+	//msg += buffer;
+	//debug_message(msg);
 	
-	sprintf(buffer, "%d", digValue);
-	msg += " ADC:";
+	
+	gBMESensor.readSensor();
+	float c_i2c = gBMESensor.getTemperature_C();
+	float pres_mb = gBMESensor.getPressure_MB();
+	float humidity = gBMESensor.getHumidity();
+	memset(buffer, '\0', 16);
+	sprintf(buffer, "%f", c_i2c);
+	string msg  = "i2c temp: ";
 	msg += buffer;
-	msg += "\n";
 	debug_message(msg);
+	/*
+	memset(buffer, '\0', 16);
+	sprintf(buffer, "%f", pres_mb);
+	msg = " pressure mb: ";
+	msg += buffer;
+	debug_message(msg);
+	memset(buffer, '\0', 16);
+	sprintf(buffer, "%f", humidity);
+	msg = " humidity: ";
+	msg += buffer;
+	debug_message(msg);
+	*/
 	
 	digValue = analogRead(WINDVANE);
 	

@@ -21,10 +21,12 @@ set(SOURCE_FILES
 set(HEADER_FILES
 	humidity.h
 	${BASE_DIRECTORY}/include/pheatherstation.h
+	${BASE_DIRECTORY}/platform-particle/cactus_io_BME280_I2C.h
 )
 
 set(PLATFORM_SOURCE
 	${BASE_DIRECTORY}/platform-particle/main.cpp
+	${BASE_DIRECTORY}/platform-particle/cactus_io_BME280_I2C.cpp
 )
 
 include_directories(
