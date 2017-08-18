@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <stdio.h>
 
 
@@ -27,7 +28,7 @@ int ADC_MAX = 4096;
 SYSTEM_MODE(MANUAL);
 
 PheatherStation gStation(VCC);
-BME280_I2C gBMESensor;
+BME280_I2C gBMESensor(0x76);
 bool bFoundSensor;
 uint8_t chipID;
 
@@ -69,52 +70,79 @@ void loop() {
 	digitalWrite(LED_FLASH, LOW);   // Turn OFF the LED
 	delay(1000);              // Wait for 1 second
 	
-	if (bFoundSensor)
-	{
-		debug_message("found BME280");
-	}
-	else
-	{
-		debug_message("Could not find BME280");
-		char buffer[8];
-		sprintf(buffer, "%u", chipID);
-		debug_message(buffer);
-	}
-	
 	int digValue = analogRead(THERMISTOR);
 	gStation.set_thermistor_voltage( digValue/(double)ADC_MAX * VCC ) ;
 	
-	char buffer[16];
-	//sprintf(buffer, "%f", gStation.get_temperature());
+	stringstream msg;
 	
-	//string msg = "ambient temperature: ";
-	//msg += buffer;
-	//debug_message(msg);
-	
+	msg << "ambient temperature: ";
+	msg << gStation.get_temperature() << endl;
 	
 	gBMESensor.readSensor();
 	float c_i2c = gBMESensor.getTemperature_C();
 	float pres_mb = gBMESensor.getPressure_MB();
 	float humidity = gBMESensor.getHumidity();
-	memset(buffer, '\0', 16);
-	sprintf(buffer, "%f", c_i2c);
-	string msg  = "i2c temp: ";
-	msg += buffer;
-	debug_message(msg);
-	/*
-	memset(buffer, '\0', 16);
-	sprintf(buffer, "%f", pres_mb);
-	msg = " pressure mb: ";
-	msg += buffer;
-	debug_message(msg);
-	memset(buffer, '\0', 16);
-	sprintf(buffer, "%f", humidity);
-	msg = " humidity: ";
-	msg += buffer;
-	debug_message(msg);
-	*/
+	
+	msg  << "i2c temp: ";
+	msg << c_i2c << endl;
+
+	msg << " pressure mb: ";
+	msg << pres_mb << endl;
+	
+	msg << " humidity: ";
+	msg << humidity << endl;
+	debug_message(msg.str());
 	
 	digValue = analogRead(WINDVANE);
+	
+	/*
+	byte error, address;
+	int nDevices;
+	nDevices = 0;
+	for(address = 1; address < 127; address++ )
+	{
+		if (address == 1)
+		{
+			debug_message("Scanning...");
+			delay(5000);
+		}
+		// The i2c_scanner uses the return value of
+		// the Write.endTransmisstion to see if
+		// a device did acknowledge to the address.
+		Wire.beginTransmission(address);
+		error = Wire.endTransmission();
+
+		stringstream msg;
+		if (error == 0)
+		{
+			msg << "I2C device found at address ";
+				
+			msg << (int)address << " !";
+
+			nDevices++;
+		}
+		else if (error==4)
+		{
+			msg << "Unknow error at address";
+				
+			msg << (int)address;
+		}
+		
+		string msg_str = msg.str();
+		if (!msg_str.empty())
+		{
+			debug_message(msg_str);
+		}
+		
+		delay(100);
+		debug_message(".");
+	}
+	
+	if (nDevices == 0)
+		debug_message("No I2C devices found\n");
+	else
+		debug_message("done\n");
+	*/
 	
 }
 
