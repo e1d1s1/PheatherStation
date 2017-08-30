@@ -12,9 +12,7 @@
 #include <sstream>
 #include <stdio.h>
 
-
-class println;
-
+// HAL ////////////////////////////////////////////
 const int LED_FLASH = D7; // Instead of writing D7 over and over again, we'll write led2. This one is the little blue LED on your board. On the Photon it is next to D7, and on the Core it is next to the USB jack.
 
 int THERMISTOR = A3; // 10k thermistor
@@ -25,12 +23,22 @@ int RAINGAUGE = WKP;
 double VCC = 3.33; // VCC voltage source
 int ADC_MAX = 4096;
 
+unsigned long DEBOUNCE_MS = 10;
+
 SYSTEM_MODE(MANUAL);
 
+// GLOBALS //////////////////////////////////////
 PheatherStation gStation(VCC);
+
 BME280_I2C gBMESensor(0x76);
 bool bFoundSensor;
 uint8_t chipID;
+
+unsigned long gLastAnemometer = 0;
+unsigned long gLastRain = 0;
+
+
+
 
 void anemometer_interrupt();
 void raingauge_interrupt();
@@ -75,25 +83,25 @@ void loop() {
 	
 	stringstream msg;
 	
-	msg << "ambient temperature: ";
-	msg << gStation.get_temperature() << endl;
+	msg << "ambient temperature: " << gStation.get_temperature() << endl;
+	
+	msg << "wind speed: " << gStation.get_windspeed() << " avg: " << gStation.get_windspeed_avg()  << endl;
 	
 	gBMESensor.readSensor();
 	float c_i2c = gBMESensor.getTemperature_C();
 	float pres_mb = gBMESensor.getPressure_MB();
 	float humidity = gBMESensor.getHumidity();
 	
-	msg  << "i2c temp: ";
-	msg << c_i2c << endl;
+	msg  << "i2c temp: " << c_i2c << endl;
 
-	msg << " pressure mb: ";
-	msg << pres_mb << endl;
+	msg << " pressure mb: " << pres_mb << endl;
 	
-	msg << " humidity: ";
-	msg << humidity << endl;
-	debug_message(msg.str());
+	msg << " humidity: " << humidity << endl;
 	
+	debug_message(msg.str());	
 	digValue = analogRead(WINDVANE);
+	
+	gStation.update_wind_data(micros());
 	
 	/*
 	byte error, address;
@@ -148,10 +156,29 @@ void loop() {
 
 void anemometer_interrupt()
 {
-	debug_message("anemometer revolution\n");
+	unsigned long now = micros();
+	if (now - gLastAnemometer >= DEBOUNCE_MS * 1000)
+	{
+		gLastAnemometer = now;
+		gStation.set_anemometer_turn(now);
+		debug_message("anemometer revolution\n");
+	}
+	else
+	{
+		debug_message("anemometer bounce\n");
+	}
 }
 
 void raingauge_interrupt()
 {
-	debug_message("rain gauage trigger\n");
+	unsigned long now = micros();
+	if (now - gLastRain >= DEBOUNCE_MS * 1000)
+	{
+		gLastRain = now;
+		debug_message("rain gauage trigger\n");
+	}
+	else
+	{
+		debug_message("rain bounce\n");
+	}
 }
