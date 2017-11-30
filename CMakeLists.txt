@@ -45,6 +45,10 @@ if(CMAKE_CONFIGURATION_TYPES)
      FORCE)
 endif()
 
+# get the modified makefile into the Particle source so external libs can be added
+file(COPY ${CMAKE_SOURCE_DIR}/platform-particle/makefile
+     DESTINATION ${CMAKE_SOURCE_DIR}/libs/firmware/main)
+
 # weather calculations
 add_subdirectory(src)
 

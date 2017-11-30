@@ -25,10 +25,10 @@ ExternalProject_Add(
     particle-firmware-deps
     EXCLUDE_FROM_ALL 1
     SOURCE_DIR "${FIRMWARE_DIR}"
-    GIT_REPOSITORY "https://github.com/ashtuchkin/spark-firmware.git"
-	#GIT_REPOSITORY "https://github.com/spark/firmware"
-    GIT_TAG "enable-exceptions-and-cpp14"
-	#GIT_TAG "latest"
+    #GIT_REPOSITORY "https://github.com/ashtuchkin/spark-firmware.git"
+	GIT_REPOSITORY "https://github.com/spark/firmware"
+    #GIT_TAG "enable-exceptions-and-cpp14"
+	GIT_TAG "release/v0.6.4"
     CONFIGURE_COMMAND ""
     BINARY_DIR "${FIRMWARE_DIR}/main"
     BUILD_COMMAND make build_dependencies -j1 ${MAKE_FLAGS}
