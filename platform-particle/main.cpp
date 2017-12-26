@@ -25,6 +25,10 @@ int ADC_MAX = 4096;
 
 unsigned long DEBOUNCE_MS = 10;
 
+const char* SSID = "BACHELORPAD-WAP";
+const char* PASSWORD = "MYKEY";
+
+
 SYSTEM_MODE(MANUAL);
 
 // GLOBALS //////////////////////////////////////
@@ -49,6 +53,22 @@ void debug_message(const string& msg)
 	Serial1.println(msg.c_str());
 }
 
+void connectToWifi()
+{
+	WiFi.disconnect();
+	WiFi.on();
+	WiFi.setCredentials(SSID, PASSWORD, WPA2);
+	debug_message("connecting to ");
+	debug_message(SSID);
+	WiFi.connect();
+	while (!WiFi.ready())
+	{
+		delay(500);
+		debug_message("connecting...\n");
+	}
+	debug_message("connected");
+}
+
 void setup() {
 	chipID = 0;
 	
@@ -68,6 +88,8 @@ void setup() {
 	Serial.begin(9600);
 	Serial1.begin(9600);
 	gStation.set_logger([=](const string& msg) { debug_message(msg); });
+	
+	connectToWifi();
 	
 	bFoundSensor = gBMESensor.begin(chipID);
 }
@@ -152,6 +174,8 @@ void loop() {
 		debug_message("done\n");
 	*/
 	
+	Particle.process();
+	debug_message(String(WiFi.localIP()).c_str());
 }
 
 void anemometer_interrupt()
