@@ -89,43 +89,14 @@ void setup() {
 	Serial1.begin(9600);
 	gStation.set_logger([=](const string& msg) { debug_message(msg); });
 	
-	connectToWifi();
+	//connectToWifi();
 	
 	bFoundSensor = gBMESensor.begin(chipID);
 }
 
-void loop() {
-    digitalWrite(LED_FLASH, HIGH);  // Turn ON the LED
-	delay(1000);              // Wait for 1000mS = 1 second
-	digitalWrite(LED_FLASH, LOW);   // Turn OFF the LED
-	delay(1000);              // Wait for 1 second
-	
-	int digValue = analogRead(THERMISTOR);
-	gStation.set_thermistor_voltage( digValue/(double)ADC_MAX * VCC ) ;
-	
-	stringstream msg;
-	
-	msg << "ambient temperature: " << gStation.get_temperature() << endl;
-	
-	msg << "wind speed: " << gStation.get_windspeed() << " avg: " << gStation.get_windspeed_avg()  << endl;
-	
-	gBMESensor.readSensor();
-	float c_i2c = gBMESensor.getTemperature_C();
-	float pres_mb = gBMESensor.getPressure_MB();
-	float humidity = gBMESensor.getHumidity();
-	
-	msg  << "i2c temp: " << c_i2c << endl;
-
-	msg << " pressure mb: " << pres_mb << endl;
-	
-	msg << " humidity: " << humidity << endl;
-	
-	debug_message(msg.str());	
-	digValue = analogRead(WINDVANE);
-	
-	gStation.update_wind_data(micros());
-	
-	/*
+/*
+void i2c_scan()
+{
 	byte error, address;
 	int nDevices;
 	nDevices = 0;
@@ -172,10 +143,45 @@ void loop() {
 		debug_message("No I2C devices found\n");
 	else
 		debug_message("done\n");
-	*/
+}
+*/
+
+void loop() {
+    digitalWrite(LED_FLASH, HIGH);  // Turn ON the LED
+	delay(1000);              // Wait for 1000mS = 1 second
+	digitalWrite(LED_FLASH, LOW);   // Turn OFF the LED
+	delay(1000);              // Wait for 1 second
+	
+	int digvalue_thermistor = analogRead(THERMISTOR);
+	gStation.set_thermistor_voltage( digvalue_thermistor/(float)ADC_MAX * VCC ) ;
+	
+	stringstream msg;
+	
+	msg << "ambient temperature: " << gStation.get_temperature() << endl;
+	
+	msg << "wind speed: " << gStation.get_windspeed() << " avg: " << gStation.get_windspeed_avg()  << endl;
+	
+	gBMESensor.readSensor();
+	float c_i2c = gBMESensor.getTemperature_C();
+	float pres_mb = gBMESensor.getPressure_MB();
+	float humidity = gBMESensor.getHumidity();
+	
+	msg  << "i2c temp: " << c_i2c << endl;
+
+	msg << " pressure mb: " << pres_mb << endl;
+	
+	msg << " humidity: " << humidity << endl;
+	
+	int digvalue_wind_vane = analogRead(WINDVANE);
+	float vane_voltage = digvalue_wind_vane/(float)ADC_MAX * VCC;
+	
+	gStation.update_wind_data(micros(), vane_voltage);
+	msg << " vane: " << vane_voltage << endl;
+	
+	debug_message(msg.str());	
 	
 	Particle.process();
-	debug_message(String(WiFi.localIP()).c_str());
+	//debug_message(String(WiFi.localIP()).c_str());
 }
 
 void anemometer_interrupt()

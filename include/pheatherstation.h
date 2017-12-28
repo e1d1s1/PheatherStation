@@ -6,11 +6,11 @@
 
 using namespace std;
 
-const double THERMISTOR_B = 4150; //25/50C
-const double THERMISTOR_R = 10000;
-const double THERM_DIV_R = 9700;
-const double K_OFFSET = 273.15;
-const double MPH_KPH = 1.60934;
+const float THERMISTOR_B = 4150; //25/50C
+const float THERMISTOR_R = 10000;
+const float THERM_DIV_R = 9700;
+const float K_OFFSET = 273.15;
+const float MPH_KPH = 1.60934;
 
 const size_t WIND_SAMPLES = 64;
 //https://www.ncdc.noaa.gov/crn/measurements.html
@@ -19,17 +19,17 @@ const unsigned long WIND_OLDEST_SAMPLE_MS = 5 * 60 * 1000;
 class PheatherStation
 {
 public:
-	PheatherStation(double vcc) : vcc_(vcc) {}
+	PheatherStation(float vcc) : vcc_(vcc) {}
 
-	double get_temperature() const { return temperature_; }
-	double get_windspeed() const { return wind_speed_; }
-	double get_windspeed_avg() const { return wind_speed_avg_; }
+	float get_temperature() const { return temperature_; }
+	float get_windspeed() const { return wind_speed_; }
+	float get_windspeed_avg() const { return wind_speed_avg_; }
 	
 	/**
 	 * @brief Set the external temperature thermistor voltage (A2 on photon)
 	 * @param voltage
 	 */
-	void set_thermistor_voltage(double voltage);
+	void set_thermistor_voltage(float voltage);
 	
 	/**
 	 * @brief serial / USB debug string output
@@ -46,20 +46,23 @@ public:
 	/**
 	 * @brief recalcualte avg and instant wind readings
 	 * @param timestamp
+	 * @param voltage of wind vane sensor
 	 */
-	void update_wind_data(unsigned long timestamp);
+	void update_wind_data(unsigned long timestamp, float vane_voltage);
 	
 private:
 	void debugline(const string& msg) const;
 	
 	// hardware stuff
-	double vcc_ = 0;
+	float vcc_ = 0;
 	function<void(const string&)> logger_ = nullptr;
 	
 	list<unsigned long> anemometer_turns_;
 	
 	// weather (metric)
-	double temperature_ = 0;
-	double wind_speed_ = 0;
-	double wind_speed_avg_ = 0;
+	float temperature_ = 0;
+	float wind_speed_ = 0;
+	float wind_speed_avg_ = 0;
+	unsigned short  wind_direction_ = 0;
+	float last_vane_voltage_ = 0;
 };
