@@ -21,6 +21,7 @@ set(SOURCE_FILES
 set(HEADER_FILES
 	humidity.h
 	${BASE_DIRECTORY}/include/pheatherstation.h
+	${BASE_DIRECTORY}/include/eeprom_settings.h
 	${BASE_DIRECTORY}/platform-particle/cactus_io_BME280_I2C.h
 )
 
