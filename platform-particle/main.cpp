@@ -35,6 +35,10 @@ PheaterStation_Settings g_settings;
 
 PheatherStation g_station(VCC);
 BME280_I2C g_BMESensor(0x76);
+
+TCPServer restful_server = TCPServer(80);
+TCPClient restful_client;
+
 bool g_found_sensor;
 uint8_t g_chipID;
 unsigned long g_last_anemometer = 0;
@@ -296,32 +300,49 @@ void do_main_loop()
 	int digvalue_thermistor = analogRead(THERMISTOR);
 	g_station.set_thermistor_voltage( digvalue_thermistor/(float)ADC_MAX * VCC ) ;
 	
-	stringstream msg;
+	//stringstream msg;
 	
-	msg << "ambient temperature: " << g_station.get_temperature() << endl;
+	//msg << "ambient temperature: " << g_station.get_temperature() << endl;
 	
-	msg << "wind speed: " << g_station.get_windspeed() << " avg: " << g_station.get_windspeed_avg()  << endl;
+	//msg << "wind speed: " << g_station.get_windspeed() << " avg: " << g_station.get_windspeed_avg()  << endl;
 	
 	g_BMESensor.readSensor();
 	float c_i2c = g_BMESensor.getTemperature_C();
 	float pres_mb = g_BMESensor.getPressure_MB();
 	float humidity = g_BMESensor.getHumidity();
 	
-	msg  << "i2c temp: " << c_i2c << endl;
+	//msg  << "i2c temp: " << c_i2c << endl;
 
-	msg << " pressure mb: " << pres_mb << endl;
+	//msg << " pressure mb: " << pres_mb << endl;
 	
-	msg << " humidity: " << humidity << endl;
+	//msg << " humidity: " << humidity << endl;
 	
 	int digvalue_wind_vane = analogRead(WINDVANE);
 	float vane_voltage = digvalue_wind_vane/(float)ADC_MAX * VCC;
 	
 	g_station.update_wind_data(micros(), vane_voltage);
-	msg << " vane: " << vane_voltage << endl;
+	//msg << " vane: " << vane_voltage << endl;
 	
-	debug_message(msg.str());	
+	//debug_message(msg.str());	
 	
 	Particle.process();
+}
+
+void do_web_server()
+{
+	if (restful_client.connected())
+	{
+		while (restful_client.available())
+		{
+			String request = restful_client.readString();
+			debug_message(request.c_str());
+			Serial.flush();
+		}
+	}
+	else
+	{
+		restful_client = restful_server.available();
+	}
 }
 
 void loop() {
@@ -340,6 +361,8 @@ void loop() {
 	else
 	{
 		do_main_loop();
+		
+		do_web_server();
 	}
     
 }
