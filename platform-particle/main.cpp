@@ -20,7 +20,7 @@ int THERMISTOR = A3; // 10k thermistor
 int ANEMOMETER = D3;
 int WINDVANE = A0;
 int RAINGAUGE = WKP;
-int SETUP = D4;
+//int SETUP = D4;
 
 double VCC = 3.33; // VCC voltage source
 int ADC_MAX = 4096;
@@ -29,11 +29,12 @@ unsigned long DEBOUNCE_MS = 10;
 
 
 SYSTEM_MODE(MANUAL);
+SYSTEM_THREAD(ENABLED);
 
 // GLOBALS //////////////////////////////////////
 PheaterStation_Settings g_settings;
 
-PheatherStation g_station(VCC);
+PheatherStation g_station;
 BME280_I2C g_BMESensor(0x76);
 
 TCPServer restful_server = TCPServer(80);
@@ -44,18 +45,35 @@ uint8_t g_chipID;
 unsigned long g_last_anemometer = 0;
 unsigned long g_last_rain = 0;
 bool g_setup_mode = false;
+unsigned long g_loop_cnt = 0;
 
 
 
 
 void anemometer_interrupt();
 void raingauge_interrupt();
-void setup_interrupt();
+
+void setup_handler(system_event_t event, int duration, void* );
 
 void debug_message(const string& msg)
 {
 	Serial.println(msg.c_str());
 	Serial1.println(msg.c_str());
+	Serial.flush();
+	Serial1.flush();
+}
+
+void reconnect()
+{
+	WiFi.on();
+	WiFi.connect();
+	while (!WiFi.ready())
+	{
+		delay(500);
+		debug_message("wiating on connection to ");
+		debug_message(g_settings.wifi_name);
+	}
+	debug_message("connected");
 }
 
 void connect_to_wifi(const char* ssid, const char* pass)
@@ -63,14 +81,8 @@ void connect_to_wifi(const char* ssid, const char* pass)
 	WiFi.disconnect();
 	WiFi.on();
 	WiFi.setCredentials(ssid, pass);
-	WiFi.connect();
-	while (!WiFi.ready())
-	{
-		delay(500);
-		debug_message("wiating on connection to ");
-		debug_message(ssid);
-	}
-	debug_message("connected");
+	WiFi.listen(false);
+	reconnect();
 }
 
 PheaterStation_Settings read_eeeprom_settings()
@@ -90,16 +102,10 @@ PheaterStation_Settings read_eeeprom_settings()
 	return retval;
 };
 
-void wait_for_serial_interrupt()
-{
-	//if USB is connected
-}
-
 bool do_serial_network_settings(PheaterStation_Settings& settings)
 {
 	bool bChanged = false;
 	debug_message("\nEnter new network name:\n");
-	Serial.flush();
 	char input = 0;
 	string last_input;
 	string name;
@@ -122,7 +128,6 @@ bool do_serial_network_settings(PheaterStation_Settings& settings)
 	
 	
 	debug_message("\nEnter new network password:\n");
-	Serial.flush();
 	input = 0;
 	last_input.clear();
 	string pass;
@@ -142,8 +147,7 @@ bool do_serial_network_settings(PheaterStation_Settings& settings)
 		bChanged = true;
 		strncpy(settings.wifi_pass, pass.c_str(), 31);
 	}
-	
-	Serial.flush();
+
 	delay(1000);
 	
 	return bChanged;
@@ -155,15 +159,11 @@ bool do_serial_setup(PheaterStation_Settings& settings)
 	digitalWrite(LED_FLASH, HIGH); 
 	
 	debug_message("Current network name: ");
-	Serial.flush();
 	debug_message(settings.wifi_name);
-	Serial.flush();
 	debug_message("Current network password: ");
-	Serial.flush();
 	debug_message(settings.wifi_pass);
 	
 	debug_message("Would you like to change network settings (y/n)\n");
-	Serial.flush();
 	
 	while (1)
 	{
@@ -186,7 +186,6 @@ bool do_serial_setup(PheaterStation_Settings& settings)
 				msg += input;
 				debug_message(msg);
 				debug_message("Would you like to change network settings (y/n)\n");
-				Serial.flush();
 			}
 		}
 	}
@@ -208,14 +207,13 @@ void setup() {
 	pinMode(RAINGAUGE, INPUT);
 	attachInterrupt(RAINGAUGE, raingauge_interrupt, RISING);
 	
-	pinMode(SETUP, INPUT);
-	attachInterrupt(SETUP, setup_interrupt, RISING);
+	System.on(button_status, setup_handler);
+	//pinMode(SETUP, INPUT);
+	//attachInterrupt(SETUP, setup_interrupt, RISING);
 	
 	Serial.begin(9600);
 	Serial1.begin(9600);
 	g_station.set_logger([=](const string& msg) { debug_message(msg); });
-	
-	wait_for_serial_interrupt();
 	
 	g_settings = read_eeeprom_settings();
 	
@@ -224,12 +222,11 @@ void setup() {
 		g_setup_mode = true;
 		
 		while(!Serial.isConnected()) // wait for Host to open serial port
-			Particle.process();
+			delay(10);
 				
 		delay(3000);
 
 		debug_message("Welcome to Pheaterstation");
-		Serial.flush();
 	}
 	else
 	{
@@ -290,6 +287,34 @@ void i2c_scan()
 }
 */
 
+void get_main_temperature(int digvalue_thermistor)
+{
+	float voltage = digvalue_thermistor/(float)ADC_MAX * VCC;
+	// thermisior is on the "upper" leg, connected to vcc
+	float r_therm = (VCC/voltage - 1) * THERM_DIV_R;
+	
+	//https://en.wikipedia.org/wiki/Thermistor
+	float temperature = 1 / ( 1/(25 + K_OFFSET) + 1 / THERMISTOR_B * log(r_therm/THERMISTOR_R)) - K_OFFSET;
+	
+	g_station.set_temperature(temperature);
+}
+
+void get_wind_direction(int digivalue_wind_vane)
+{
+	// TODO: offset
+	unsigned short direction = (unsigned short)(360 * digivalue_wind_vane/(float)ADC_MAX);
+	
+	g_station.update_wind_data(micros(), direction);
+}
+
+void read_BME_sensor()
+{
+	g_BMESensor.readSensor();
+	float c_i2c = g_BMESensor.getTemperature_C();
+	float pres_mb = g_BMESensor.getPressure_MB();
+	float humidity = g_BMESensor.getHumidity();
+}
+
 void do_main_loop()
 {
 	digitalWrite(LED_FLASH, HIGH);  // Turn ON the LED
@@ -297,35 +322,20 @@ void do_main_loop()
 	digitalWrite(LED_FLASH, LOW);   // Turn OFF the LED
 	delay(1000);              // Wait for 1 second
 	
-	int digvalue_thermistor = analogRead(THERMISTOR);
-	g_station.set_thermistor_voltage( digvalue_thermistor/(float)ADC_MAX * VCC ) ;
-	
-	//stringstream msg;
-	
-	//msg << "ambient temperature: " << g_station.get_temperature() << endl;
-	
-	//msg << "wind speed: " << g_station.get_windspeed() << " avg: " << g_station.get_windspeed_avg()  << endl;
-	
-	g_BMESensor.readSensor();
-	float c_i2c = g_BMESensor.getTemperature_C();
-	float pres_mb = g_BMESensor.getPressure_MB();
-	float humidity = g_BMESensor.getHumidity();
-	
-	//msg  << "i2c temp: " << c_i2c << endl;
+	debug_message("read ADC");
+	get_main_temperature(analogRead(THERMISTOR));
+	get_wind_direction(analogRead(WINDVANE));
+	debug_message("ADC done");
 
-	//msg << " pressure mb: " << pres_mb << endl;
+	debug_message("read BME");
+	read_BME_sensor();
+	debug_message("BME done");
 	
-	//msg << " humidity: " << humidity << endl;
+	stringstream msg;
+	msg << "cycle count: " << g_loop_cnt++;
+	debug_message(msg.str());
 	
-	int digvalue_wind_vane = analogRead(WINDVANE);
-	float vane_voltage = digvalue_wind_vane/(float)ADC_MAX * VCC;
-	
-	g_station.update_wind_data(micros(), vane_voltage);
-	//msg << " vane: " << vane_voltage << endl;
-	
-	//debug_message(msg.str());	
-	
-	Particle.process();
+	//digitalWrite(LED_FLASH, millis() & 0x80); // blink every 256ms
 }
 
 void do_web_server()
@@ -336,7 +346,6 @@ void do_web_server()
 		{
 			String request = restful_client.readString();
 			debug_message(request.c_str());
-			Serial.flush();
 		}
 	}
 	else
@@ -349,7 +358,6 @@ void loop() {
 	if (g_setup_mode)
 	{
 		debug_message("entering setup mode\n");
-		Serial.flush();
 		if (do_serial_setup(g_settings))
 		{
 			g_settings.first_boot = false;
@@ -360,11 +368,18 @@ void loop() {
 	}
 	else
 	{
-		do_main_loop();
+		SINGLE_THREADED_BLOCK()
+		{
+			do_main_loop();
+		}
 		
 		do_web_server();
 	}
-    
+	
+	if (!WiFi.ready())
+	{
+		reconnect();
+	}
 }
 
 void anemometer_interrupt()
@@ -396,8 +411,14 @@ void raingauge_interrupt()
 	}
 }
 
-void setup_interrupt()
+void setup_handler(system_event_t event, int duration, void* )
 {
-	debug_message("setup trigger\n");
-	g_setup_mode = true;
+    if (!duration) { // just pressed
+        RGB.control(true);
+        RGB.color(128, 128, 128);
+    }
+    else { // just released
+        RGB.color(255, 0, 255);
+		g_setup_mode = true;
+    }
 }

@@ -63,7 +63,6 @@ D0 - I2C SDA (BME280 Atmospheric Sensor)
 D1 - I2C SCL (BME280 Atmospheric Sensor)
 D2 - Rain Gauge
 D3 - Anemometer
-D4 - Serial Settings Mode 
 D6-D7 SWD Programmer
 A0 - Wind Vane
 A1 - Battery Voltage

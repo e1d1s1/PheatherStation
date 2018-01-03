@@ -2,7 +2,7 @@
 #include <functional>
 #include <math.h> 
 #include <string> 
-#include <list>
+#include <deque>
 
 using namespace std;
 
@@ -19,17 +19,10 @@ const unsigned long WIND_OLDEST_SAMPLE_MS = 5 * 60 * 1000;
 class PheatherStation
 {
 public:
-	PheatherStation(float vcc) : vcc_(vcc) {}
-
 	float get_temperature() const { return temperature_; }
+	void set_temperature(float temp) { temperature_ = temp; }
 	float get_windspeed() const { return wind_speed_; }
 	float get_windspeed_avg() const { return wind_speed_avg_; }
-	
-	/**
-	 * @brief Set the external temperature thermistor voltage (A2 on photon)
-	 * @param voltage
-	 */
-	void set_thermistor_voltage(float voltage);
 	
 	/**
 	 * @brief serial / USB debug string output
@@ -46,23 +39,21 @@ public:
 	/**
 	 * @brief recalcualte avg and instant wind readings
 	 * @param timestamp
-	 * @param voltage of wind vane sensor
+	 * @param direction compass direction of wind vane sensor
 	 */
-	void update_wind_data(unsigned long timestamp, float vane_voltage);
+	void update_wind_data(unsigned long timestamp, unsigned short direction);
 	
 private:
 	void debugline(const string& msg) const;
 	
-	// hardware stuff
-	float vcc_ = 0;
+	// debug/serial output
 	function<void(const string&)> logger_ = nullptr;
 	
-	list<unsigned long> anemometer_turns_;
+	deque<unsigned long> anemometer_turns_;
 	
 	// weather (metric)
 	float temperature_ = 0;
 	float wind_speed_ = 0;
 	float wind_speed_avg_ = 0;
 	unsigned short  wind_direction_ = 0;
-	float last_vane_voltage_ = 0;
 };

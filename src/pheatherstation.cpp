@@ -6,15 +6,6 @@
 #include <stdio.h>
 
 
-void PheatherStation::set_thermistor_voltage(float voltage)
-{
-	// thermisior is on the "upper" leg, connected to vcc
-	float r_therm = (vcc_/voltage - 1) * THERM_DIV_R;
-	
-	//https://en.wikipedia.org/wiki/Thermistor
-	temperature_ = 1 / ( 1/(25 + K_OFFSET) + 1 / THERMISTOR_B * log(r_therm/THERMISTOR_R)) - K_OFFSET;
-}
-
 void PheatherStation::debugline(const string& msg) const
 {
 		if (logger_)
@@ -27,49 +18,53 @@ void PheatherStation::debugline(const string& msg) const
 void PheatherStation::set_anemometer_turn(unsigned long timestamp_microsec)
 {
 	anemometer_turns_.push_back(timestamp_microsec);
-	update_wind_data(timestamp_microsec, last_vane_voltage_);
+	update_wind_data(timestamp_microsec, wind_direction_);
 }
 
-void PheatherStation::update_wind_data(unsigned long timestamp_microsec, float vane_voltage)
+void PheatherStation::update_wind_data(unsigned long timestamp_microsec, unsigned short direction)
 {
 	wind_speed_ = 0;
 	wind_speed_avg_ = 0;
-	wind_direction_ = 0;
-	last_vane_voltage_ = vane_voltage;
+	wind_direction_ = direction;
 	
-	while (anemometer_turns_.size() > WIND_SAMPLES ||
-		timestamp_microsec - anemometer_turns_.front() >= WIND_OLDEST_SAMPLE_MS * 1000)
+	if (!anemometer_turns_.empty())
+	{
+		// prune the wind speed data
+		while (anemometer_turns_.size() > WIND_SAMPLES ||
+			timestamp_microsec - anemometer_turns_.front() >= WIND_OLDEST_SAMPLE_MS * 1000)
 		{
 			anemometer_turns_.pop_front();
+			if (anemometer_turns_.empty()) break;
 		}
 
-	double duration_sec = (timestamp_microsec - anemometer_turns_.front()) / 1000000;
-	if (duration_sec > 0)
-	{
-		// 5 minute avg https://www.ncdc.noaa.gov/crn/measurements.html
-		float v_mph_avg = anemometer_turns_.size() * 2.25 / duration_sec;
-		wind_speed_avg_= v_mph_avg * MPH_KPH;
-		
-		// instantaneous (2 sec)
-		size_t pulse_cnt = 0;
-		duration_sec = 0;
-		auto iter = anemometer_turns_.rbegin();
-		if ((timestamp_microsec - *iter) / 1000000 < 2 )
+		// calculate wind speed/averages
+		double duration_sec = (timestamp_microsec - anemometer_turns_.front()) / 1000000;
+		if (duration_sec > 0)
 		{
-			while (iter !=anemometer_turns_.rend() && duration_sec < 2)
-			{
-				duration_sec = (timestamp_microsec - *iter) / 1000000;
-				pulse_cnt++;
-				iter++;
-			}
+			// 5 minute avg https://www.ncdc.noaa.gov/crn/measurements.html
+			float v_mph_avg = anemometer_turns_.size() * 2.25 / duration_sec;
+			wind_speed_avg_= v_mph_avg * MPH_KPH;
 			
-			if (duration_sec > 0)
+			// instantaneous (2 sec)
+			size_t pulse_cnt = 0;
+			duration_sec = 0;
+			auto iter = anemometer_turns_.rbegin();
+			if ((timestamp_microsec - *iter) / 1000000 < 2 )
 			{
-				float v_mph = pulse_cnt * 2.25 / duration_sec; 
-				wind_speed_ = v_mph * MPH_KPH;
+				while (iter !=anemometer_turns_.rend() && duration_sec < 2)
+				{
+					duration_sec = (timestamp_microsec - *iter) / 1000000;
+					pulse_cnt++;
+					iter++;
+				}
+				
+				if (duration_sec > 0)
+				{
+					float v_mph = pulse_cnt * 2.25 / duration_sec; 
+					wind_speed_ = v_mph * MPH_KPH;
+				}
 			}
 		}
 	}
-	
 	
 }
