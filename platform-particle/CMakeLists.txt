@@ -43,13 +43,13 @@ include_directories(
         ${BASE_DIRECTORY}/libs/firmware/services/inc
         ${BASE_DIRECTORY}/libs/firmware/wiring/inc
         ${BASE_DIRECTORY}/libs/firmware/user/inc
-		${BASE_DIRECTORY}/libs/firmware/communication/src
-		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries
-		${BASE_DIRECTORY}/libs/firmware/platform/MCU/STM32F2xx/CMSIS/Include
-		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries/inc
-		${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/ARM_CM3
-		${BASE_DIRECTORY}/libs/firmware/platform/MCU/gcc/inc
-		${BASE_DIRECTORY}/libs/firmware/hal/src/stm32
+	${BASE_DIRECTORY}/libs/firmware/communication/src
+	${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries
+	${BASE_DIRECTORY}/libs/firmware/platform/MCU/STM32F2xx/CMSIS/Include
+	${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/MCU/STM32F2xx/peripherals/libraries/inc
+	${BASE_DIRECTORY}/libs/firmware/hal/src/photon/wiced/platform/ARM_CM3
+	${BASE_DIRECTORY}/libs/firmware/platform/MCU/gcc/inc
+	${BASE_DIRECTORY}/libs/firmware/hal/src/stm32
         )
 
 # CMSIS library
@@ -78,7 +78,7 @@ add_custom_target(pheatherstation-firmware-clean
 
 add_custom_target(pheatherstation-firmware-upload
     DEPENDS pheatherstation-firmware
-    COMMAND particle flash --usb ${TARGET_DIR}/${TARGET_FILE}.bin
+    COMMAND particle flash -v --usb ${TARGET_DIR}/${TARGET_FILE}.bin
 )
 
 add_custom_target(pheatherstation-firmware-assembler

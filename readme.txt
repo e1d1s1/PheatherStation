@@ -22,9 +22,9 @@ make
 sudo make install
 
 get particle-cli, requires node.js/npm for platform if using USB flahsing
-git clone git@github.com:spark/particle-cli.git
+git clone https://github.com/particle-iot/particle-cli.git
 cd particle-cli
-npm install
+sudo npm install -g
 
 Building:
 mkdir build
