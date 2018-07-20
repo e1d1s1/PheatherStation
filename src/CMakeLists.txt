@@ -16,10 +16,13 @@ set(CMAKE_CXX_STANDARD 14)
 set(SOURCE_FILES
 	pheatherstation.cpp
 	humidity.cpp
+	web_handler.cpp
 )
 
 set(HEADER_FILES
-	humidity.h
+	${BASE_DIRECTORY}/include/humidity.h
+	${BASE_DIRECTORY}/include/string_helper.h
+	${BASE_DIRECTORY}/include/web_handler.h
 	${BASE_DIRECTORY}/include/pheatherstation.h
 	${BASE_DIRECTORY}/include/eeprom_settings.h
 	${BASE_DIRECTORY}/platform-particle/cactus_io_BME280_I2C.h

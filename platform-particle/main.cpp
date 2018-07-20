@@ -5,6 +5,9 @@
 #include "pheatherstation.h"
 #include "eeprom_settings.h"
 #include "cactus_io_BME280_I2C.h"
+#include "humidity.h"
+#include "string_helper.h"
+#include "web_handler.h"
 
 #include <Wire.h>
 
@@ -39,6 +42,7 @@ BME280_I2C g_BMESensor(0x76);
 
 TCPServer restful_server = TCPServer(80);
 TCPClient restful_client;
+WebHandler webHandler;
 
 bool g_found_sensor;
 uint8_t g_chipID;
@@ -294,6 +298,7 @@ void get_main_temperature(int digvalue_thermistor)
 	float r_therm = (VCC/voltage - 1) * THERM_DIV_R;
 	
 	//https://en.wikipedia.org/wiki/Thermistor
+	//https://en.wikipedia.org/wiki/00:01:42: Symbols file loaded into OS file system cache (0 seconds)
 	float temperature = 1 / ( 1/(25 + K_OFFSET) + 1 / THERMISTOR_B * log(r_therm/THERMISTOR_R)) - K_OFFSET;
 	
 	g_station.set_temperature(temperature);
@@ -344,8 +349,13 @@ void do_web_server()
 	{
 		while (restful_client.available())
 		{
-			String request = restful_client.readString();
+			string request = restful_client.readString().c_str();
 			debug_message(request.c_str());
+			
+			vector<string> headers = split(request, '\r');
+			
+			string reply = webHandler.get_response(headers);
+			restful_server.write((const uint8_t*)reply.c_str(), reply.length());
 		}
 	}
 	else
